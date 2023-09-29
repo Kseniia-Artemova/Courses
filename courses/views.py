@@ -1,9 +1,11 @@
 from django.shortcuts import render
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.viewsets import ModelViewSet
 
-from courses.models import Course, Lesson
-from courses.serializers import CourseSerializer, LessonSerializer
+from courses.models import Course, Lesson, Payment
+from courses.serializers import CourseSerializer, LessonSerializer, PaymentSerializer
 
 
 class CourseListAPIView(ListAPIView):
@@ -33,3 +35,11 @@ class CourseDestroyAPIView(DestroyAPIView):
 class LessonViewSet(ModelViewSet):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
+
+
+class PaymentListAPIView(ListAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+    filter_backends = [OrderingFilter, DjangoFilterBackend]
+    filterset_fields = ('course', 'lesson', 'way_pay')
+    ordering_fields = ('date',)
