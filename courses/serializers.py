@@ -4,12 +4,15 @@ from courses.models import Course, Lesson, Payment
 
 
 class LessonSerializer(serializers.ModelSerializer):
+    """Сериализатор для обработки информации об уроках"""
+
     class Meta:
         model = Lesson
         fields = '__all__'
 
 
 class CourseSerializer(serializers.ModelSerializer):
+    """Сериализатор для обработки информации о курсах"""
 
     # Тут на всякий случай два варианта, чтобы оба в голове держать
 
@@ -27,6 +30,8 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class PaymentSerializer(serializers.ModelSerializer):
+    """Сериализатор для обработки информации о платежах"""
+
     class Meta:
         model = Payment
         fields = '__all__'

@@ -1,8 +1,11 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 
+from users.models import User
+
 
 class Course(models.Model):
+    """Модель для описания курсов"""
 
     name = models.CharField(max_length=200, verbose_name='Название')
     preview = models.ImageField(null=True, blank=True, upload_to='', verbose_name='Превью')
@@ -17,6 +20,7 @@ class Course(models.Model):
 
 
 class Lesson(models.Model):
+    """Модель для описания уроков"""
 
     name = models.CharField(max_length=50, verbose_name='Название')
     description = models.TextField(null=True, blank=True, verbose_name='Описание')
@@ -38,32 +42,36 @@ class Lesson(models.Model):
 
 
 class Payment(models.Model):
+    """Модель для описания платежей за уроки и курсы"""
 
     WAYS_PAY = (
         ('card', 'Картой'),
         ('cash', 'Наличными')
     )
 
-    client = models.EmailField(max_length=250, verbose_name='E-mail')
     date = models.DateTimeField(auto_now_add=True, verbose_name='Дата платежа')
     amount = models.PositiveIntegerField(verbose_name='Сумма оплаты')
     way_pay = models.CharField(max_length=4, choices=WAYS_PAY, verbose_name='Способ оплаты')
 
+    user = models.ForeignKey(User,
+                             on_delete=models.CASCADE,
+                             related_name='payments',
+                             verbose_name='Пользователь')
     course = models.ForeignKey(Course,
                                on_delete=models.CASCADE,
                                null=True,
                                blank=True,
-                               related_name='clients',
+                               related_name='payments',
                                verbose_name='Курс')
     lesson = models.ForeignKey(Lesson,
                                on_delete=models.CASCADE,
                                null=True,
                                blank=True,
-                               related_name='clients',
+                               related_name='payments',
                                verbose_name='Урок')
 
     def __str__(self):
-        return f"{self.date}: {self.client} - {self.amount}"
+        return f"{self.date}: {self.user} - {self.amount}"
 
     def clean(self):
         if self.course and self.lesson:

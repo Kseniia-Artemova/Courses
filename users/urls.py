@@ -7,7 +7,7 @@ from users.views import UserViewSet
 name_app = UsersConfig.name
 
 router = DefaultRouter()
-router.register(r'users', UserViewSet)
+router.register(r'', UserViewSet)
 
 urlpatterns = [
     # path('list/', UserListAPIView.as_view(), name='users_list'),
