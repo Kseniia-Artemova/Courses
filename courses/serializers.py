@@ -16,7 +16,7 @@ class CourseSerializer(serializers.ModelSerializer):
 
     # Тут на всякий случай два варианта, чтобы оба в голове держать
 
-    lesson_count = serializers.IntegerField(source='lesson_set.all.count')
+    # lesson_count = serializers.IntegerField(source='lesson_set.all.count')
     lesson_count = serializers.SerializerMethodField()
     lessons = LessonSerializer(many=True)
 
