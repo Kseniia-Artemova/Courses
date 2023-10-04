@@ -8,7 +8,7 @@ from courses.views import CourseListAPIView, CourseRetrieveAPIView, CourseCreate
 name_app = CoursesConfig.name
 
 router = DefaultRouter()
-router.register(r'lessons', LessonViewSet)
+router.register(r'lessons', LessonViewSet, basename='lesson')
 
 urlpatterns = [
     path('courses/list/', CourseListAPIView.as_view(), name='courses_list'),

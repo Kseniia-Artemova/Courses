@@ -1,14 +1,25 @@
 from rest_framework import serializers
 
 from courses.models import Course, Lesson, Payment
+from courses.permissions import OnlyManagerOrOwner
 
 
 class LessonSerializer(serializers.ModelSerializer):
     """Сериализатор для обработки информации об уроках"""
 
+    user = serializers.SerializerMethodField()
+
+    @staticmethod
+    def get_user(instance):
+        if instance.user:
+            return instance.user.email
+
     class Meta:
         model = Lesson
-        fields = '__all__'
+        # fields = '__all__'
+        fields = ('name', 'description', 'user')
+        # Не работает указание прав доступа в сериализаторе
+        # permission_classes = [OnlyManagerOrOwner]
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -18,15 +29,23 @@ class CourseSerializer(serializers.ModelSerializer):
 
     # lesson_count = serializers.IntegerField(source='lesson_set.all.count')
     lesson_count = serializers.SerializerMethodField()
-    lessons = LessonSerializer(many=True)
+    lessons = LessonSerializer(many=True, required=False)
+    user = serializers.SerializerMethodField()
 
     @staticmethod
     def get_lesson_count(instance):
         return instance.lessons.count()
 
+    @staticmethod
+    def get_user(instance):
+        if instance.user:
+            return instance.user.email
+
     class Meta:
         model = Course
-        fields = ['id', 'name', 'preview', 'description', 'lesson_count', 'lessons']
+        fields = ['id', 'name', 'preview', 'description', 'lesson_count', 'lessons', 'user']
+        # Не работает указание прав доступа в сериализаторе
+        # permission_classes = [OnlyManagerOrOwner]
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -35,3 +54,5 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
+        # Не работает указание прав доступа в сериализаторе
+        # permission_classes = [OnlyManagerOrOwner]
