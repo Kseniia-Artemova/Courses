@@ -18,7 +18,8 @@ class LessonSerializer(serializers.ModelSerializer):
         model = Lesson
         # fields = '__all__'
         fields = ('name', 'description', 'user')
-        permission_classes = [OnlyManagerOrOwner]
+        # Не работает указание прав доступа в сериализаторе
+        # permission_classes = [OnlyManagerOrOwner]
 
 
 class CourseSerializer(serializers.ModelSerializer):
@@ -43,7 +44,8 @@ class CourseSerializer(serializers.ModelSerializer):
     class Meta:
         model = Course
         fields = ['id', 'name', 'preview', 'description', 'lesson_count', 'lessons', 'user']
-        permission_classes = [OnlyManagerOrOwner]
+        # Не работает указание прав доступа в сериализаторе
+        # permission_classes = [OnlyManagerOrOwner]
 
 
 class PaymentSerializer(serializers.ModelSerializer):
@@ -52,4 +54,5 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = '__all__'
-        permission_classes = [OnlyManagerOrOwner]
+        # Не работает указание прав доступа в сериализаторе
+        # permission_classes = [OnlyManagerOrOwner]
