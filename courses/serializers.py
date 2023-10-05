@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from courses.models import Course, Lesson, Payment
+from courses.models import Course, Lesson, Payment, Subscription
 from courses.permissions import OnlyManagerOrOwner
 from courses.validators import LinkValidator
 
@@ -29,10 +29,11 @@ class CourseSerializer(serializers.ModelSerializer):
 
     # Тут на всякий случай два варианта, чтобы оба в голове держать
 
-    # lesson_count = serializers.IntegerField(source='lesson_set.all.count')
+    # lesson_count = serializers.IntegerField(source='lessons.all.count')
     lesson_count = serializers.SerializerMethodField()
     lessons = LessonSerializer(many=True, required=False)
     user = serializers.SerializerMethodField()
+    is_updates_active = serializers.SerializerMethodField()
 
     @staticmethod
     def get_lesson_count(instance):
@@ -43,9 +44,13 @@ class CourseSerializer(serializers.ModelSerializer):
         if instance.user:
             return instance.user.email
 
+    def get_is_updates_active(self, instance):
+        user = self.context['request'].user
+        return instance.updates.filter(user=user).exists()
+
     class Meta:
         model = Course
-        fields = ['id', 'name', 'preview', 'description', 'lesson_count', 'lessons', 'user']
+        fields = ['id', 'name', 'preview', 'description', 'lesson_count', 'lessons', 'user', 'is_updates_active']
         # Не работает указание прав доступа в сериализаторе
         # permission_classes = [OnlyManagerOrOwner]
 
@@ -58,3 +63,10 @@ class PaymentSerializer(serializers.ModelSerializer):
         fields = '__all__'
         # Не работает указание прав доступа в сериализаторе
         # permission_classes = [OnlyManagerOrOwner]
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Subscription
+        fields = ('course', 'user')

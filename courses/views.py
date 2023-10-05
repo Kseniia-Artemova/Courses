@@ -1,12 +1,15 @@
+from django.http import HttpResponseRedirect
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
-
-from courses.models import Course, Lesson, Payment
+from courses.models import Course, Lesson, Payment, Subscription
 from courses.permissions import ManagerPermission, OnlyManagerOrOwner, OnlyOwner
-from courses.serializers import CourseSerializer, LessonSerializer, PaymentSerializer
+from courses.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionSerializer
 
 
 class CourseListAPIView(ListAPIView):
@@ -15,19 +18,10 @@ class CourseListAPIView(ListAPIView):
     Юзеры могут видеть только свои курсы, менеджеры могут видеть весь список.
     Запрещено для неавторизованных пользователей
     """
-
+    queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
     action = 'list'
-
-    def get_queryset(self):
-        if not self.request.user.groups.filter(name='Managers').exists():
-            self.queryset = Course.objects.filter(user=self.request.user)
-        else:
-            self.queryset = Course.objects.all()
-        queryset = super().get_queryset()
-
-        return queryset
 
 
 class CourseRetrieveAPIView(RetrieveAPIView):
@@ -141,3 +135,23 @@ class PaymentListAPIView(ListAPIView):
         queryset = super().get_queryset()
 
         return queryset
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def subscribe_to_updates(request, pk):
+    try:
+        course = Course.objects.get(pk=pk)
+    except Course.DoesNotExist:
+        return Response({"error": "Такой курс не существует."}, status=status.HTTP_400_BAD_REQUEST)
+    else:
+        if Subscription.objects.filter(course=course, user=request.user).exists():
+            Subscription.objects.filter(course=course, user=request.user).delete()
+            return Response({'message': f'Подписка на обновления курса {course.name} отменена!'})
+
+        data = {'course': pk, 'user': request.user.id}
+        serializer = SubscriptionSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': f'Подписан на обновления курса {course.name}!'})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
