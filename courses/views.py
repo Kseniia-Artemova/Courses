@@ -1,4 +1,3 @@
-from django.http import HttpResponseRedirect
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -8,6 +7,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from courses.models import Course, Lesson, Payment, Subscription
+from courses.pagination import SimplePageNumberPagination
 from courses.permissions import ManagerPermission, OnlyManagerOrOwner, OnlyOwner
 from courses.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionSerializer
 
@@ -22,6 +22,16 @@ class CourseListAPIView(ListAPIView):
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
     action = 'list'
+    pagination_class = SimplePageNumberPagination
+
+    # def get_queryset(self):
+    #     if not self.request.user.groups.filter(name='Managers').exists():
+    #         self.queryset = Course.objects.filter(user=self.request.user)
+    #     else:
+    #         self.queryset = Course.objects.all()
+    #     queryset = super().get_queryset()
+    #
+    #     return queryset
 
 
 class CourseRetrieveAPIView(RetrieveAPIView):
@@ -90,6 +100,8 @@ class LessonViewSet(ModelViewSet):
     """
 
     serializer_class = LessonSerializer
+    pagination_class = SimplePageNumberPagination
+    queryset = Lesson.objects.all()
 
     def get_permissions(self):
         if self.action in ('list', 'create'):
@@ -103,14 +115,14 @@ class LessonViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    def get_queryset(self):
-        if not self.request.user.groups.filter(name='Managers').exists():
-            self.queryset = Lesson.objects.filter(user=self.request.user)
-        else:
-            self.queryset = Lesson.objects.all()
-        queryset = super().get_queryset()
-
-        return queryset
+    # def get_queryset(self):
+    #     if not self.request.user.groups.filter(name='Managers').exists():
+    #         self.queryset = Lesson.objects.filter(user=self.request.user)
+    #     else:
+    #         self.queryset = Lesson.objects.all()
+    #     queryset = super().get_queryset()
+    #
+    #     return queryset
 
 
 class PaymentListAPIView(ListAPIView):
