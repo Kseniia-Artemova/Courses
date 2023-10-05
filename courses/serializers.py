@@ -2,12 +2,14 @@ from rest_framework import serializers
 
 from courses.models import Course, Lesson, Payment
 from courses.permissions import OnlyManagerOrOwner
+from courses.validators import LinkValidator
 
 
 class LessonSerializer(serializers.ModelSerializer):
     """Сериализатор для обработки информации об уроках"""
 
-    user = serializers.SerializerMethodField()
+    user = serializers.SerializerMethodField(read_only=True)
+    video = serializers.URLField(validators=[LinkValidator()])
 
     @staticmethod
     def get_user(instance):
@@ -17,7 +19,7 @@ class LessonSerializer(serializers.ModelSerializer):
     class Meta:
         model = Lesson
         # fields = '__all__'
-        fields = ('name', 'description', 'user')
+        fields = ('name', 'description', 'video', 'user', 'course')
         # Не работает указание прав доступа в сериализаторе
         # permission_classes = [OnlyManagerOrOwner]
 

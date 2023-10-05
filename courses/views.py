@@ -106,9 +106,8 @@ class LessonViewSet(ModelViewSet):
             permission_classes = [IsAuthenticated & OnlyManagerOrOwner]
         return [permission() for permission in permission_classes]
 
-    def create(self, request, *args, **kwargs):
-        request.data['user'] = request.user.id
-        return super().create(request, *args, **kwargs)
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
     def get_queryset(self):
         if not self.request.user.groups.filter(name='Managers').exists():
