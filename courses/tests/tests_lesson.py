@@ -1,7 +1,7 @@
 from django.contrib.auth.models import Group
 from django.test import TestCase
 from rest_framework import status
-from rest_framework.test import APITestCase, force_authenticate
+from rest_framework.test import APITestCase
 
 from courses.models import Lesson
 from users.models import User
@@ -9,17 +9,26 @@ from users.models import User
 
 class LessonTestCase(APITestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.url = '/courses/lessons/'
-        self.lesson = Lesson.objects.create(
-            name='test lesson',
-            description='description of test lesson',
-            video='https://www.youtube.com/watch?v=myf3o1CM4do&list=PLA0M1Bcd0w8yU5h2vwZ4LO7h1xt8COUXl&index=6'
-        )
+
         self.user = User.objects.create(email='ksu@mail.ru', is_active=True, is_staff=False, is_superuser=False)
         self.manager = User.objects.create(email='manager@mail.ru', is_active=True, is_staff=False, is_superuser=False)
         group, created = Group.objects.get_or_create(name='Managers')
         self.manager.groups.add(group)
+
+        self.some_lesson = Lesson.objects.create(
+            name='test lesson',
+            description='description of test lesson',
+            video='https://www.youtube.com/watch?v=myf3o1CM4do&list=PLA0M1Bcd0w8yU5h2vwZ4LO7h1xt8COUXl&index=6',
+            user=None
+        )
+        self.users_lesson = Lesson.objects.create(
+            name='test lesson',
+            description='description of test lesson',
+            video='https://www.youtube.com/watch?v=myf3o1CM4do&list=PLA0M1Bcd0w8yU5h2vwZ4LO7h1xt8COUXl&index=6',
+            user=self.user
+        )
 
         self.good_data = {
             'name': 'test usual user\'s lesson',
@@ -28,8 +37,6 @@ class LessonTestCase(APITestCase):
         }
 
         self.client.force_authenticate(user=self.user)
-        self.client.post(self.url, data=self.good_data)
-        self.created_lesson_by_user = Lesson.objects.get(name=self.good_data["name"])
 
     def test_get_response_unauthorized(self):
 
@@ -38,19 +45,19 @@ class LessonTestCase(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        response = self.client.get(self.url + f'{self.lesson.pk}/')
+        response = self.client.get(self.url + f'{self.some_lesson.pk}/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         response = self.client.post(self.url, data={'name': 'test_lesson'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        response = self.client.put(self.url + f'{self.lesson.pk}/', data={'name': 'test_lesson_change'})
+        response = self.client.put(self.url + f'{self.some_lesson.pk}/', data={'name': 'test_lesson_change'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        response = self.client.patch(self.url + f'{self.lesson.pk}/', data={'name': 'test_lesson_change'})
+        response = self.client.patch(self.url + f'{self.some_lesson.pk}/', data={'name': 'test_lesson_change'})
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
-        response = self.client.delete(self.url + f'{self.lesson.pk}/')
+        response = self.client.delete(self.url + f'{self.some_lesson.pk}/')
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
     def test_get_lesson_list(self):
@@ -62,18 +69,18 @@ class LessonTestCase(APITestCase):
             response.json()['results'],
             [
                 {
-                    'name': self.lesson.name,
-                    'description': self.lesson.description,
-                    'video': self.lesson.video,
-                    'user': self.lesson.user,
-                    'course': self.lesson.course
+                    'name': self.some_lesson.name,
+                    'description': self.some_lesson.description,
+                    'video': self.some_lesson.video,
+                    'user': self.some_lesson.user,
+                    'course': self.some_lesson.course
                 },
                 {
-                    'name': self.good_data['name'],
-                    'description': self.good_data['description'],
-                    'video': self.good_data['video'],
-                    'user': self.user.email,
-                    'course': None
+                    'name': self.users_lesson.name,
+                    'description': self.users_lesson.description,
+                    'video': self.users_lesson.video,
+                    'user': self.users_lesson.user.email,
+                    'course': self.users_lesson.course
                 }
             ]
         )
@@ -121,17 +128,17 @@ class LessonTestCase(APITestCase):
 
     def test_retrieve_lesson_user(self):
 
-        response = self.client.get(self.url + f'{self.lesson.pk}/')
+        response = self.client.get(self.url + f'{self.some_lesson.pk}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        response = self.client.get(self.url + f'{self.created_lesson_by_user.pk}/')
+        response = self.client.get(self.url + f'{self.users_lesson.pk}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), {
-            'name': self.good_data['name'],
-            'description': self.good_data['description'],
-            'video': self.good_data['video'],
-            'user': self.user.email,
-            'course': None
+            'name': self.users_lesson.name,
+            'description': self.users_lesson.description,
+            'video': self.users_lesson.video,
+            'user': self.users_lesson.user.email,
+            'course': self.users_lesson.course
 
         })
 
@@ -139,14 +146,14 @@ class LessonTestCase(APITestCase):
 
         self.client.force_authenticate(user=self.manager)
 
-        response = self.client.get(self.url + f'{self.created_lesson_by_user.pk}/')
+        response = self.client.get(self.url + f'{self.users_lesson.pk}/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), {
-            'name': self.good_data['name'],
-            'description': self.good_data['description'],
-            'video': self.good_data['video'],
-            'user': self.user.email,
-            'course': None
+            'name': self.users_lesson.name,
+            'description': self.users_lesson.description,
+            'video': self.users_lesson.video,
+            'user': self.users_lesson.user.email,
+            'course': self.users_lesson.course
         })
 
     def test_update_lesson_user(self):
@@ -156,17 +163,17 @@ class LessonTestCase(APITestCase):
             'video': 'https://www.youtube.com/watch?v=EVrMbS14FdE&list=PLA0M1Bcd0w8xZA3Kl1fYmOH_MfLpiYMRs&index=2',
         }
 
-        response = self.client.put(self.url + f'{self.lesson.pk}/', data=update_data)
+        response = self.client.put(self.url + f'{self.some_lesson.pk}/', data=update_data)
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        response = self.client.patch(self.url + f'{self.lesson.pk}/', data={'name': 'test_update'})
+        response = self.client.patch(self.url + f'{self.some_lesson.pk}/', data={'name': 'test_update'})
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        response = self.client.put(self.url + f'{self.created_lesson_by_user.pk}/', data=update_data)
+        response = self.client.put(self.url + f'{self.users_lesson.pk}/', data=update_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()['name'], update_data['name'])
 
-        response = self.client.patch(self.url + f'{self.created_lesson_by_user.pk}/', data={'name': 'test_update'})
+        response = self.client.patch(self.url + f'{self.users_lesson.pk}/', data={'name': 'test_update'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()['name'], 'test_update')
 
@@ -179,29 +186,29 @@ class LessonTestCase(APITestCase):
 
         self.client.force_authenticate(user=self.manager)
 
-        response = self.client.put(self.url + f'{self.created_lesson_by_user.pk}/', data=update_data)
+        response = self.client.put(self.url + f'{self.users_lesson.pk}/', data=update_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()['name'], update_data['name'])
 
-        response = self.client.patch(self.url + f'{self.created_lesson_by_user.pk}/', data={'name': 'test_update'})
+        response = self.client.patch(self.url + f'{self.users_lesson.pk}/', data={'name': 'test_update'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json()['name'], 'test_update')
 
     def test_delete_lesson_user(self):
 
-        response = self.client.delete(self.url + f'{self.lesson.pk}/')
+        response = self.client.delete(self.url + f'{self.some_lesson.pk}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        response = self.client.delete(self.url + f'{self.created_lesson_by_user.pk}/')
+        response = self.client.delete(self.url + f'{self.users_lesson.pk}/')
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_delete_lesson_manager(self):
         self.client.force_authenticate(user=self.manager)
 
-        response = self.client.delete(self.url + f'{self.lesson.pk}/')
+        response = self.client.delete(self.url + f'{self.some_lesson.pk}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-        response = self.client.delete(self.url + f'{self.created_lesson_by_user.pk}/')
+        response = self.client.delete(self.url + f'{self.users_lesson.pk}/')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
