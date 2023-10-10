@@ -1,3 +1,6 @@
+import os
+
+import requests
 from django.http import HttpRequest
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
@@ -7,6 +10,8 @@ from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView,
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+
+from config import settings
 from courses.models import Course, Lesson, Payment, Subscription
 from courses.pagination import SimplePageNumberPagination
 from courses.permissions import IsManager, OnlyManagerOrOwner, OnlyOwner
@@ -172,3 +177,10 @@ def subscribe_to_updates(request: HttpRequest, pk: int) -> Response:
             return Response({'message': f'Подписан на обновления курса {course.name}!'},
                             status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PayCourseView(UpdateAPIView):
+    queryset = Course.objects.all()
+
+
+
