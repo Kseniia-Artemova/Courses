@@ -1,17 +1,14 @@
 from rest_framework.permissions import BasePermission
 
 
-class ManagerPermission(BasePermission):
+class IsManager(BasePermission):
     """
     Права менеджеров
     Имеют доступ ко всему, кроме создания и удаления объектов
     """
 
     def has_permission(self, request, view):
-        is_manager = request.user.groups.filter(name='Managers').exists()
-        if view.action in ('create', 'destroy') and is_manager:
-            return False
-        return True
+        return request.user.groups.filter(name='Managers').exists()
 
 
 class OnlyManagerOrOwner(BasePermission):

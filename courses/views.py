@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from courses.models import Course, Lesson, Payment, Subscription
 from courses.pagination import SimplePageNumberPagination
-from courses.permissions import ManagerPermission, OnlyManagerOrOwner, OnlyOwner
+from courses.permissions import IsManager, OnlyManagerOrOwner, OnlyOwner
 from courses.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionSerializer
 
 
@@ -22,7 +22,6 @@ class CourseListAPIView(ListAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated]
-    action = 'list'
     pagination_class = SimplePageNumberPagination
 
     # def get_queryset(self):
@@ -45,7 +44,6 @@ class CourseRetrieveAPIView(RetrieveAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated & OnlyManagerOrOwner]
-    action = 'retrieve'
 
 
 class CourseCreateAPIView(CreateAPIView):
@@ -55,8 +53,7 @@ class CourseCreateAPIView(CreateAPIView):
     """
 
     serializer_class = CourseSerializer
-    permission_classes = [IsAuthenticated & ManagerPermission]
-    action = 'create'
+    permission_classes = [IsAuthenticated & ~IsManager]
 
     def perform_create(self, serializer):
         new_object = serializer.save()
@@ -74,7 +71,6 @@ class CourseUpdateAPIView(UpdateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated & OnlyManagerOrOwner]
-    action = 'update'
 
 
 class CourseDestroyAPIView(DestroyAPIView):
@@ -86,7 +82,6 @@ class CourseDestroyAPIView(DestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated & OnlyOwner]
-    action = 'destroy'
 
 
 class LessonViewSet(ModelViewSet):
@@ -105,10 +100,12 @@ class LessonViewSet(ModelViewSet):
     queryset = Lesson.objects.all()
 
     def get_permissions(self):
-        if self.action in ('list', 'create'):
-            permission_classes = [IsAuthenticated & ManagerPermission]
+        if self.action == 'create':
+            permission_classes = [IsAuthenticated & ~IsManager]
         elif self.action == 'destroy':
             permission_classes = [IsAuthenticated & OnlyOwner]
+        elif self.action == 'list':
+            permission_classes = [IsAuthenticated]
         else:
             permission_classes = [IsAuthenticated & OnlyManagerOrOwner]
         return [permission() for permission in permission_classes]
@@ -166,7 +163,7 @@ def subscribe_to_updates(request: HttpRequest, pk: int) -> Response:
         if Subscription.objects.filter(course=course, user=request.user).exists():
             Subscription.objects.filter(course=course, user=request.user).delete()
             return Response({'message': f'Подписка на обновления курса {course.name} отменена!'},
-                            status=status.HTTP_204_NO_CONTENT)
+                            status=status.HTTP_200_OK)
 
         data = {'course': pk, 'user': request.user.id}
         serializer = SubscriptionSerializer(data=data)
