@@ -1,3 +1,4 @@
+from django.http import HttpRequest
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -127,7 +128,7 @@ class LessonViewSet(ModelViewSet):
 
 class PaymentListAPIView(ListAPIView):
     """
-    Представление для отображения списка объектов.
+    Представление для отображения списка платежей.
 
     Менеджеры могут видеть весь список, обычные юзеры - только свои платежи
     """
@@ -151,7 +152,12 @@ class PaymentListAPIView(ListAPIView):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def subscribe_to_updates(request, pk):
+def subscribe_to_updates(request: HttpRequest, pk: int) -> Response:
+    """
+    Представление для осуществления подписки на обновления курса или отмены подписки.
+    Запрещено неавторизованным пользователям
+    """
+
     try:
         course = Course.objects.get(pk=pk)
     except Course.DoesNotExist:
@@ -159,11 +165,13 @@ def subscribe_to_updates(request, pk):
     else:
         if Subscription.objects.filter(course=course, user=request.user).exists():
             Subscription.objects.filter(course=course, user=request.user).delete()
-            return Response({'message': f'Подписка на обновления курса {course.name} отменена!'})
+            return Response({'message': f'Подписка на обновления курса {course.name} отменена!'},
+                            status=status.HTTP_204_NO_CONTENT)
 
         data = {'course': pk, 'user': request.user.id}
         serializer = SubscriptionSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
-            return Response({'message': f'Подписан на обновления курса {course.name}!'})
+            return Response({'message': f'Подписан на обновления курса {course.name}!'},
+                            status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
