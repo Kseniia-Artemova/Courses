@@ -1,12 +1,15 @@
-from django.http import HttpRequest
+import requests
+from django.http import HttpRequest, HttpResponseRedirect
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
+
+from courses import services
 from courses.models import Course, Lesson, Payment, Subscription
 from courses.pagination import SimplePageNumberPagination
 from courses.permissions import IsManager, OnlyManagerOrOwner, OnlyOwner
@@ -132,7 +135,7 @@ class PaymentListAPIView(ListAPIView):
 
     serializer_class = PaymentSerializer
     filter_backends = [OrderingFilter, DjangoFilterBackend]
-    filterset_fields = ('course', 'lesson', 'way_pay')
+    filterset_fields = ('course', 'way_pay')
     ordering_fields = ('date',)
     permission_classes = [IsAuthenticated]
     action = 'list'
@@ -172,3 +175,48 @@ def subscribe_to_updates(request: HttpRequest, pk: int) -> Response:
             return Response({'message': f'Подписан на обновления курса {course.name}!'},
                             status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def pay_course(request: HttpRequest, course_pk: int) -> Response:
+    """
+    Представление для получения ссылки оплаты за курс, сразу перенаправляет на создание платежа
+    Права доступа по умолчанию - только для авторизованных пользователей
+    """
+
+    try:
+        linked_object = Course.objects.get(pk=course_pk)
+        if linked_object:
+            payment_url = services.get_payment_link(request, linked_object)
+            # return HttpResponseRedirect(payment_url)
+            return Response({"payment_url": payment_url}, status=status.HTTP_200_OK)
+    except requests.RequestException:
+        return Response({"error": "Ошибка доступа к сайту оплаты"}, status=status.HTTP_400_BAD_REQUEST)
+    except Course.DoesNotExist:
+        return Response({"error": "Курс не найден"}, status=status.HTTP_404_NOT_FOUND)
+
+
+class PaymentCreateAPIView(CreateAPIView):
+    """
+    Представление для создания платежа после номинально успешной оплаты курса
+    Права доступа по умолчанию - только для авторизованных пользователей
+    """
+
+    serializer_class = PaymentSerializer
+
+    def create(self, *args, **kwargs):
+        linked_object = Course.objects.get(pk=kwargs.get('course_pk', None))
+        if linked_object:
+            data = {
+                'amount': linked_object.price,
+                'user': self.request.user.pk,
+                'course': linked_object.pk
+            }
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+

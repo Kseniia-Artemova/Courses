@@ -16,13 +16,6 @@ class PaymentTestCase(APITestCase):
         group, created = Group.objects.get_or_create(name='Managers')
         self.manager.groups.add(group)
 
-        self.some_lesson = Lesson.objects.create(
-            name='test lesson',
-            description='description of test lesson',
-            video='https://www.youtube.com/watch?v=myf3o1CM4do&list=PLA0M1Bcd0w8yU5h2vwZ4LO7h1xt8COUXl&index=6',
-            user=None
-        )
-
         self.some_course = Course.objects.create(
             name='test anon course',
             description='description of test anon course',
@@ -33,16 +26,14 @@ class PaymentTestCase(APITestCase):
             amount=2000,
             way_pay='cash',
             user=User.objects.create(email='some_user@mail.ru'),
-            course=self.some_course,
-            lesson=None
+            course=self.some_course
         )
 
         self.users_payment = Payment.objects.create(
             amount=2000,
             way_pay='card',
             user=self.user,
-            course=self.some_course,
-            lesson=None
+            course=self.some_course
         )
 
     def test_payment_list_unauthenticated(self):

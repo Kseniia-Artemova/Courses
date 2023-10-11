@@ -159,3 +159,10 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=160),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
+
+# Payments stripe.com
+SECRET_KEY_STRIPE = os.getenv('SECRET_KEY_STRIPE')
+URL_PRODUCT = os.getenv('URL_PRODUCT')
+URL_PRICE = os.getenv('URL_PRICE')
+URL_PAYMENT_LINK = os.getenv('URL_PAYMENT_LINK')
+HEADERS = {"Authorization": f"Bearer {SECRET_KEY_STRIPE}"}
