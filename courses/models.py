@@ -10,6 +10,8 @@ class Course(models.Model):
     name = models.CharField(max_length=200, verbose_name='Название')
     preview = models.ImageField(null=True, blank=True, upload_to='', verbose_name='Превью')
     description = models.TextField(null=True, blank=True, verbose_name='Описание')
+    price = models.PositiveIntegerField(default=10000, verbose_name='Цена')
+    stripe_id = models.CharField(max_length=50, null=True, blank=True, verbose_name='id продукта на stripe.com')
 
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
@@ -65,7 +67,7 @@ class Payment(models.Model):
 
     date = models.DateTimeField(auto_now_add=True, verbose_name='Дата платежа')
     amount = models.PositiveIntegerField(verbose_name='Сумма оплаты')
-    way_pay = models.CharField(max_length=4, choices=WAYS_PAY, verbose_name='Способ оплаты')
+    way_pay = models.CharField(max_length=4, choices=WAYS_PAY, default=WAYS_PAY[0][0], verbose_name='Способ оплаты')
 
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
@@ -73,25 +75,12 @@ class Payment(models.Model):
                              verbose_name='Пользователь')
     course = models.ForeignKey(Course,
                                on_delete=models.CASCADE,
-                               null=True,
-                               blank=True,
+                               default=9,
                                related_name='payments',
                                verbose_name='Курс')
-    lesson = models.ForeignKey(Lesson,
-                               on_delete=models.CASCADE,
-                               null=True,
-                               blank=True,
-                               related_name='payments',
-                               verbose_name='Урок')
 
     def __str__(self):
         return f"{self.date}: {self.user} - {self.amount}"
-
-    def clean(self):
-        if self.course and self.lesson:
-            raise ValidationError('Нужно выбрать что-то одно')
-        elif not self.course and not self.lesson:
-            raise ValidationError('Нужно заполнить поле Курса или поле Урока')
 
     class Meta:
         verbose_name = 'Платёж'
