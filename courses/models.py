@@ -68,6 +68,8 @@ class Payment(models.Model):
     date = models.DateTimeField(auto_now_add=True, verbose_name='Дата платежа')
     amount = models.PositiveIntegerField(verbose_name='Сумма оплаты')
     way_pay = models.CharField(max_length=4, choices=WAYS_PAY, default=WAYS_PAY[0][0], verbose_name='Способ оплаты')
+    id_stripe_session = models.CharField(max_length=100, null=True, blank=True, verbose_name='id платежной сессии')
+    is_succeed = models.BooleanField(default=False, verbose_name='Завершенная оплата')
 
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,

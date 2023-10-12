@@ -150,7 +150,7 @@ class PaymentListAPIView(ListAPIView):
         return queryset
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def subscribe_to_updates(request: HttpRequest, pk: int) -> Response:
     """
@@ -177,7 +177,7 @@ def subscribe_to_updates(request: HttpRequest, pk: int) -> Response:
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['POST'])
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def pay_course(request: HttpRequest, course_pk: int) -> Response:
     """
@@ -186,37 +186,42 @@ def pay_course(request: HttpRequest, course_pk: int) -> Response:
     """
 
     try:
-        linked_object = Course.objects.get(pk=course_pk)
-        if linked_object:
-            payment_url = services.get_payment_link(request, linked_object)
-            # return HttpResponseRedirect(payment_url)
-            return Response({"payment_url": payment_url}, status=status.HTTP_200_OK)
+        course = Course.objects.get(pk=course_pk)
+        if course:
+            data = {
+                'amount': course.price,
+                'user': request.user.pk,
+                'course': course.pk,
+            }
+            serializer = PaymentSerializer(data=data)
+            if serializer.is_valid():
+                payment = serializer.save()
+
+                session_id, payment_url = services.get_payment_link(request, course, payment.pk)
+                payment.id_stripe_session = session_id
+                payment.save()
+
+                # return HttpResponseRedirect(payment_url)
+                return Response({"payment_url": payment_url}, status=status.HTTP_200_OK)
     except requests.RequestException:
         return Response({"error": "Ошибка доступа к сайту оплаты"}, status=status.HTTP_400_BAD_REQUEST)
     except Course.DoesNotExist:
         return Response({"error": "Курс не найден"}, status=status.HTTP_404_NOT_FOUND)
 
 
-class PaymentCreateAPIView(CreateAPIView):
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_payment(request: HttpRequest, payment_pk: int) -> Response:
     """
-    Представление для создания платежа после номинально успешной оплаты курса
-    Права доступа по умолчанию - только для авторизованных пользователей
+    Представление для проверки успешности платежа
+    Права доступа - только для авторизованных пользователей
     """
 
-    serializer_class = PaymentSerializer
-
-    def create(self, *args, **kwargs):
-        linked_object = Course.objects.get(pk=kwargs.get('course_pk', None))
-        if linked_object:
-            data = {
-                'amount': linked_object.price,
-                'user': self.request.user.pk,
-                'course': linked_object.pk
-            }
-            serializer = self.get_serializer(data=data)
-            serializer.is_valid(raise_exception=True)
-            self.perform_create(serializer)
-            headers = self.get_success_headers(serializer.data)
-            return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
-
-
+    payment = Payment.objects.filter(pk=payment_pk).first()
+    if payment and services.is_payment_succeed(payment.id_stripe_session):
+        payment.is_succeed = True
+        payment.save()
+        return Response({'message': f'Оплачен курс {payment.course.name}!'},
+                        status=status.HTTP_200_OK)
+    return Response({'message': f'Курс {payment.course.name} не был оплачен!'},
+                    status=status.HTTP_200_OK)

@@ -162,7 +162,7 @@ SIMPLE_JWT = {
 
 # Payments stripe.com
 SECRET_KEY_STRIPE = os.getenv('SECRET_KEY_STRIPE')
-URL_PRODUCT = os.getenv('URL_PRODUCT')
-URL_PRICE = os.getenv('URL_PRICE')
-URL_PAYMENT_LINK = os.getenv('URL_PAYMENT_LINK')
+PRODUCT_URL = os.getenv('PRODUCT_URL')
+PRICE_URL = os.getenv('PRICE_URL')
+SESSION_URL = os.getenv('SESSION_URL')
 HEADERS = {"Authorization": f"Bearer {SECRET_KEY_STRIPE}"}
