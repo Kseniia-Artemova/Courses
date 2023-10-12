@@ -213,13 +213,14 @@ def pay_course(request: HttpRequest, course_pk: int) -> Response:
 @permission_classes([IsAuthenticated])
 def check_payment(request: HttpRequest, payment_pk: int) -> Response:
     """
-    Представление для создания платежа после номинально успешной оплаты курса
-    Права доступа по умолчанию - только для авторизованных пользователей
+    Представление для проверки успешности платежа
+    Права доступа - только для авторизованных пользователей
     """
 
     payment = Payment.objects.filter(pk=payment_pk).first()
-    if payment and services.check_payment(payment.id_stripe_session) == 'paid':
+    if payment and services.is_payment_succeed(payment.id_stripe_session):
         payment.is_succeed = True
+        payment.save()
         return Response({'message': f'Оплачен курс {payment.course.name}!'},
                         status=status.HTTP_200_OK)
     return Response({'message': f'Курс {payment.course.name} не был оплачен!'},

@@ -55,6 +55,6 @@ def create_price(object: Course) -> str:
     return response.json().get('id')
 
 
-def check_payment(session_id):
+def is_payment_succeed(session_id: str) -> str:
     response = requests.get(settings.SESSION_URL + f'/{session_id}', headers=settings.HEADERS)
-    return response.json().get('payment_status')
+    return response.json().get('payment_status') == 'paid'
