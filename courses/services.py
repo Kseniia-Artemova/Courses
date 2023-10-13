@@ -1,12 +1,13 @@
 from typing import Any
 
 import requests
+from django.core.mail import send_mail
 from django.http import HttpRequest
 from rest_framework.reverse import reverse
 
 from config import settings
 from courses import serializers
-from courses.models import Course
+from courses.models import Course, Subscription
 
 
 def get_payment_link(request: HttpRequest, object: Course, payment_pk: int) -> tuple[Any, Any]:

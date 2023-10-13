@@ -12,6 +12,7 @@ class Course(models.Model):
     description = models.TextField(null=True, blank=True, verbose_name='Описание')
     price = models.PositiveIntegerField(default=10000, verbose_name='Цена')
     stripe_id = models.CharField(max_length=50, null=True, blank=True, verbose_name='id продукта на stripe.com')
+    last_update = models.DateTimeField(auto_now=True, verbose_name='Последнее обновление')
 
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
