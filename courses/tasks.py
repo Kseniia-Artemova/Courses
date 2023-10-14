@@ -33,12 +33,12 @@ def task_update_payment_status() -> None:
     print('Статусы платежей обновлены!')
 
 
-ten_sec = IntervalSchedule.objects.create(every=10,
-                                          period=IntervalSchedule.SECONDS)
-
-PeriodicTask.objects.create(
-    interval=ten_sec,
-    name='Update payment statuses',
-    task='courses.tasks.task_update_payment_status',
-    expires=timezone.now() + timedelta(seconds=30)
-)
+# ten_sec = IntervalSchedule.objects.create(every=10,
+#                                           period=IntervalSchedule.SECONDS)
+#
+# PeriodicTask.objects.create(
+#     interval=ten_sec,
+#     name='Update payment statuses',
+#     task='courses.tasks.task_update_payment_status',
+#     expires=timezone.now() + timedelta(seconds=30)
+# )

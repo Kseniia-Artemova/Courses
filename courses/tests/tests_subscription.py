@@ -19,18 +19,18 @@ class LessonTestCase(APITestCase):
 
     def test_subscribe_to_updates(self):
 
-        response = self.client.get(self.url)
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
 
         self.client.force_authenticate(user=self.user)
 
-        response = self.client.get(self.url)
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(response.json(), {'message': f'Подписан на обновления курса {self.course.name}!'})
         subscription_state = Subscription.objects.filter(course=self.course, user=self.user).exists()
         self.assertEqual(subscription_state, True)
 
-        response = self.client.get(self.url)
+        response = self.client.post(self.url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), {'message': f'Подписка на обновления курса {self.course.name} отменена!'})
         subscription_state = Subscription.objects.filter(course=self.course, user=self.user).exists()
