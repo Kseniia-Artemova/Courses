@@ -10,7 +10,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         email = os.getenv('ADMIN_EMAIL')
 
-        if not User.objects.get(email=email).exists():
+        if not User.objects.filter(email=email).exists():
             superuser = User(
                 email=os.getenv('ADMIN_EMAIL'),
                 is_active=True,

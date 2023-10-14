@@ -1,23 +1,24 @@
 from typing import Any
 
 import requests
+from django.core.mail import send_mail
 from django.http import HttpRequest
 from rest_framework.reverse import reverse
 
 from config import settings
 from courses import serializers
-from courses.models import Course
+from courses.models import Course, Subscription
 
 
-def get_payment_link(request: HttpRequest, object: Course, payment_pk: int) -> tuple[Any, Any]:
+def get_payment_link(request: HttpRequest, course: Course, payment_pk: int) -> tuple[Any, Any]:
     """
     Функция, которая интегрирует функционал
     оплаты со стороннего сервиса stripe.com
     и возвращает ссылку на страницу с оплатой
     """
 
-    get_or_create_product(object)
-    price_id = create_price(object)
+    get_or_create_product(course)
+    price_id = create_price(course)
     success_url = request.build_absolute_uri(reverse('courses:check_payment',
                                                      kwargs={'payment_pk': payment_pk}))
     cancel_url = request.build_absolute_uri(reverse('courses:courses_list'))
@@ -33,30 +34,30 @@ def get_payment_link(request: HttpRequest, object: Course, payment_pk: int) -> t
     return response.get('id'), response.get('url')
 
 
-def get_or_create_product(object: Course) -> str:
+def get_or_create_product(course: Course) -> str:
     """Вспомогательная функция для создания товара в сервисе stripe.com"""
 
-    if not object.stripe_id:
-        params = {'name': object.name}
+    if not course.stripe_id:
+        params = {'name': course.name}
         response = requests.post(settings.PRODUCT_URL, headers=settings.HEADERS, params=params)
-        object.stripe_id = response.json().get('id', None)
-        object.save()
-    return object.stripe_id
+        course.stripe_id = response.json().get('id', None)
+        course.save()
+    return course.stripe_id
 
 
-def create_price(object: Course) -> str:
+def create_price(course: Course) -> str:
     """Вспомогательная функция для создания цены в сервисе stripe.com"""
 
-    unit_amount_in_kopecks = object.price * 100
+    unit_amount_in_kopecks = course.price * 100
     params = {'unit_amount': unit_amount_in_kopecks,
               'currency': 'rub',
-              'product': object.stripe_id}
+              'product': course.stripe_id}
     response = requests.post(settings.PRICE_URL, headers=settings.HEADERS, params=params)
     return response.json().get('id')
 
 
 def is_payment_succeed(session_id: str) -> str:
-    """Функция проверки успешности платежа"""
+    """Функция для проверки успешности платежа"""
 
     response = requests.get(settings.SESSION_URL + f'/{session_id}', headers=settings.HEADERS)
     return response.json().get('payment_status') == 'paid'

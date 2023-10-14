@@ -1,5 +1,6 @@
 import requests
 from django.http import HttpRequest, HttpResponseRedirect
+from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -7,6 +8,7 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework.viewsets import ModelViewSet
 
 from courses import services
@@ -14,6 +16,7 @@ from courses.models import Course, Lesson, Payment, Subscription
 from courses.pagination import SimplePageNumberPagination
 from courses.permissions import IsManager, OnlyManagerOrOwner, OnlyOwner
 from courses.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionSerializer
+from courses.tasks import send_updates
 
 
 class CourseListAPIView(ListAPIView):
@@ -74,6 +77,15 @@ class CourseUpdateAPIView(UpdateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
     permission_classes = [IsAuthenticated & OnlyManagerOrOwner]
+
+    def perform_update(self, serializer):
+        serializer.save()
+        course = self.get_object()
+        time_between_updates = (timezone.now() - course.last_update).seconds
+        time_in_hours = time_between_updates // 3600
+        if time_in_hours >= 4:
+            total_url = self.request.build_absolute_uri(reverse('courses:course_detail', kwargs={'pk': course.pk}))
+            send_updates.delay(course.pk, total_url)
 
 
 class CourseDestroyAPIView(DestroyAPIView):
