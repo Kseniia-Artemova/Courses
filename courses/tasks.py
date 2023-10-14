@@ -1,40 +1,44 @@
 from datetime import timedelta
 
 from celery import shared_task
-from django.contrib.auth.models import Group
-from django.core.mail import send_mail
 from django.utils import timezone
+from django_celery_beat.models import PeriodicTask, IntervalSchedule
 
-from config import settings
-from courses.models import Subscription
-from users.models import User
+from users import services
+from courses.services import subscriptions, payments
 
 
 @shared_task
-def send_updates(course_id: int, url: str) -> None:
+def task_send_updates(course_id: int, url: str) -> None:
     """Функция для отправки писем об обновлениях курса"""
 
-    subscriptions = Subscription.objects.filter(course=course_id)
-    for subscription in subscriptions:
-        result = send_mail(
-            subject=f'Обновления в курсе {subscription.course.name}!',
-            message=f'Посмотрите обновления в курсе! {url}',
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[subscription.user.email]
-        )
-        print(f'Отправка письма, результат: {result}')
+    subscriptions.send_updates(course_id, url)
 
 
 @shared_task
-def deactivate_users() -> None:
+def task_deactivate_users() -> None:
     """
     Блокирует всех пользователей, кроме менеджеров, персонала и суперпользователей,
     если они не заходили в аккаунт более месяца
     """
 
-    one_month = timezone.now() - timedelta(days=30)
-    users = User.objects.filter(last_login__lt=one_month)
-    managers = Group.objects.get(name="Managers")
-    regular_users = users.exclude(groups=managers).exclude(is_staff=True).exclude(is_superuser=True)
-    regular_users.update(is_active=False)
-    print('Неактивные пользователи заблокированы')
+    services.deactivate_users()
+
+
+@shared_task
+def task_update_payment_status() -> None:
+    """Функция для обновления статуса платежей в случае получения ответа об успешной оплате"""
+
+    payments.update_payment_status()
+    print('Статусы платежей обновлены!')
+
+
+ten_sec, created = IntervalSchedule.objects.create(every=10,
+                                                   period=IntervalSchedule.SECONDS)
+
+PeriodicTask.objects.create(
+    interval=ten_sec,
+    name='Update payment statuses',
+    task='courses.tasks.task_update_payment_status',
+    expires=timezone.now() + timedelta(seconds=30)
+)

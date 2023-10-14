@@ -1,5 +1,5 @@
 import requests
-from django.http import HttpRequest, HttpResponseRedirect
+from django.http import HttpRequest
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status
@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.viewsets import ModelViewSet
 
-from courses import services
+from courses.services import payments
 from courses.models import Course, Lesson, Payment, Subscription
 from courses.pagination import SimplePageNumberPagination
 from courses.permissions import IsManager, OnlyManagerOrOwner, OnlyOwner
@@ -150,7 +150,6 @@ class PaymentListAPIView(ListAPIView):
     filterset_fields = ('course', 'way_pay')
     ordering_fields = ('date',)
     permission_classes = [IsAuthenticated]
-    action = 'list'
 
     def get_queryset(self):
         if not self.request.user.groups.filter(name='Managers').exists():
@@ -162,7 +161,19 @@ class PaymentListAPIView(ListAPIView):
         return queryset
 
 
-@api_view(['GET'])
+class PaymentRetrieveAPIView(RetrieveAPIView):
+    """
+    Представление для отображения конкретного платежа.
+
+    Менеджеры могут видеть любой платёж, обычные юзеры - только свои платежи
+    """
+
+    serializer_class = PaymentSerializer
+    permission_classes = [IsAuthenticated & OnlyManagerOrOwner]
+    queryset = Payment.objects.all()
+
+
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def subscribe_to_updates(request: HttpRequest, pk: int) -> Response:
     """
@@ -193,47 +204,28 @@ def subscribe_to_updates(request: HttpRequest, pk: int) -> Response:
 @permission_classes([IsAuthenticated])
 def pay_course(request: HttpRequest, course_pk: int) -> Response:
     """
-    Представление для получения ссылки оплаты за курс, сразу перенаправляет на создание платежа
+    Представление для получения ссылки оплаты за курс, сразу перенаправляет на создание платежа.
+    Создаёт неактивный платёж.
     Права доступа по умолчанию - только для авторизованных пользователей
     """
 
     try:
         course = Course.objects.get(pk=course_pk)
         if course:
+            session_id, payment_url = payments.get_payment_link(request, course)
             data = {
                 'amount': course.price,
                 'user': request.user.pk,
                 'course': course.pk,
+                'id_stripe_session': session_id
             }
             serializer = PaymentSerializer(data=data)
             if serializer.is_valid():
-                payment = serializer.save()
-
-                session_id, payment_url = services.get_payment_link(request, course, payment.pk)
-                payment.id_stripe_session = session_id
-                payment.save()
-
-                # return HttpResponseRedirect(payment_url)
+                serializer.save()
                 return Response({"payment_url": payment_url}, status=status.HTTP_200_OK)
+
     except requests.RequestException:
         return Response({"error": "Ошибка доступа к сайту оплаты"}, status=status.HTTP_400_BAD_REQUEST)
+
     except Course.DoesNotExist:
         return Response({"error": "Курс не найден"}, status=status.HTTP_404_NOT_FOUND)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def check_payment(request: HttpRequest, payment_pk: int) -> Response:
-    """
-    Представление для проверки успешности платежа
-    Права доступа - только для авторизованных пользователей
-    """
-
-    payment = Payment.objects.filter(pk=payment_pk).first()
-    if payment and services.is_payment_succeed(payment.id_stripe_session):
-        payment.is_succeed = True
-        payment.save()
-        return Response({'message': f'Оплачен курс {payment.course.name}!'},
-                        status=status.HTTP_200_OK)
-    return Response({'message': f'Курс {payment.course.name} не был оплачен!'},
-                    status=status.HTTP_200_OK)

@@ -1,16 +1,16 @@
+from datetime import timedelta
 from typing import Any
 
 import requests
-from django.core.mail import send_mail
 from django.http import HttpRequest
+from django.utils import timezone
 from rest_framework.reverse import reverse
 
 from config import settings
-from courses import serializers
-from courses.models import Course, Subscription
+from courses.models import Course, Payment
 
 
-def get_payment_link(request: HttpRequest, course: Course, payment_pk: int) -> tuple[Any, Any]:
+def get_payment_link(request: HttpRequest, course: Course) -> tuple[Any, Any]:
     """
     Функция, которая интегрирует функционал
     оплаты со стороннего сервиса stripe.com
@@ -19,14 +19,13 @@ def get_payment_link(request: HttpRequest, course: Course, payment_pk: int) -> t
 
     get_or_create_product(course)
     price_id = create_price(course)
-    success_url = request.build_absolute_uri(reverse('courses:check_payment',
-                                                     kwargs={'payment_pk': payment_pk}))
-    cancel_url = request.build_absolute_uri(reverse('courses:courses_list'))
+    course_detail = request.build_absolute_uri(reverse('courses:course_detail',
+                                                       kwargs={'pk': course.pk}))
 
     params = {'line_items[0][price]': price_id,
               'line_items[0][quantity]': 1,
-              'success_url': success_url,
-              'cancel_url': cancel_url,
+              'success_url': course_detail,
+              'cancel_url': course_detail,
               'mode': 'payment',
               }
 
@@ -61,3 +60,15 @@ def is_payment_succeed(session_id: str) -> str:
 
     response = requests.get(settings.SESSION_URL + f'/{session_id}', headers=settings.HEADERS)
     return response.json().get('payment_status') == 'paid'
+
+
+def update_payment_status() -> None:
+    """Функция для обновления статуса платежей в случае получения ответа об успешной оплате"""
+
+    one_week = timezone.now() - timedelta(days=7)
+    inactive_payments = Payment.objects.filter(date__gt=one_week, is_succeed=False)
+    for payment in inactive_payments:
+        session_id = payment.id_stripe_session
+        if is_payment_succeed(session_id):
+            payment.is_succeed = True
+            payment.save()
