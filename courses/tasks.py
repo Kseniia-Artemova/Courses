@@ -33,8 +33,8 @@ def task_update_payment_status() -> None:
     print('Статусы платежей обновлены!')
 
 
-ten_sec, created = IntervalSchedule.objects.create(every=10,
-                                                   period=IntervalSchedule.SECONDS)
+ten_sec = IntervalSchedule.objects.create(every=10,
+                                          period=IntervalSchedule.SECONDS)
 
 PeriodicTask.objects.create(
     interval=ten_sec,
