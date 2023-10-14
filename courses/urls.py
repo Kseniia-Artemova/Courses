@@ -20,6 +20,5 @@ urlpatterns = [
     path('payment/list/', PaymentListAPIView.as_view(), name='payment_list'),
     path('payment/<int:pk>/', PaymentRetrieveAPIView.as_view(), name='payment_retrieve'),
     path('<int:course_pk>/pay/', pay_course, name='pay_course'),
-    path('<int:payment_pk>/check_payment/', check_payment, name='check_payment'),
     path('subscribe/<int:pk>/', subscribe_to_updates, name='subscribe_to_updates')
 ] + router.urls

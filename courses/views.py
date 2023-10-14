@@ -16,7 +16,7 @@ from courses.models import Course, Lesson, Payment, Subscription
 from courses.pagination import SimplePageNumberPagination
 from courses.permissions import IsManager, OnlyManagerOrOwner, OnlyOwner
 from courses.serializers import CourseSerializer, LessonSerializer, PaymentSerializer, SubscriptionSerializer
-from courses.tasks import send_updates
+from courses.tasks import task_send_updates
 
 
 class CourseListAPIView(ListAPIView):
@@ -85,7 +85,7 @@ class CourseUpdateAPIView(UpdateAPIView):
         time_in_hours = time_between_updates // 3600
         if time_in_hours >= 4:
             total_url = self.request.build_absolute_uri(reverse('courses:course_detail', kwargs={'pk': course.pk}))
-            send_updates.delay(course.pk, total_url)
+            task_send_updates.delay(course.pk, total_url)
 
 
 class CourseDestroyAPIView(DestroyAPIView):
