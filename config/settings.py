@@ -163,6 +163,19 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
 }
 
+SWAGGER_SETTINGS = {
+   'SECURITY_DEFINITIONS': {
+      'Basic': {
+            'type': 'basic'
+      },
+      'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header'
+      }
+   }
+}
+
 # Payments stripe.com
 SECRET_KEY_STRIPE = os.getenv('SECRET_KEY_STRIPE')
 PRODUCT_URL = os.getenv('PRODUCT_URL')

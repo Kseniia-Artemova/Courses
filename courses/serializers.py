@@ -60,12 +60,11 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        fields = '__all__'
-        # Не работает указание прав доступа в сериализаторе
-        # permission_classes = [OnlyManagerOrOwner]
+        exclude = ('id_stripe_session', )
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):
+    """Сериализатор для обработки информации о подписках на курс"""
 
     class Meta:
         model = Subscription
