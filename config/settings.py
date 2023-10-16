@@ -186,7 +186,7 @@ HEADERS = {"Authorization": f"Bearer {SECRET_KEY_STRIPE}"}
 
 # Celery Configuration Options
 CELERY_BROKER_URL = 'redis://localhost:6379'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'django-db'
 CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
@@ -197,6 +197,10 @@ CELERY_BEAT_SCHEDULE = {
     'deactivate_users': {
         'task': 'users.tasks.task_deactivate_users',
         'schedule': timedelta(days=1)
+    },
+    'cleanup_expired_results': {
+        'task': 'django_celery_results.tasks.cleanup_expired_results',
+        'schedule': timedelta(weeks=4),
     }
 }
 
