@@ -79,10 +79,11 @@ class CourseUpdateAPIView(UpdateAPIView):
     permission_classes = [IsAuthenticated & OnlyManagerOrOwner]
 
     def perform_update(self, serializer):
-        serializer.save()
         course = self.get_object()
         time_between_updates = (timezone.now() - course.last_update).seconds
         time_in_hours = time_between_updates // 3600
+        serializer.save()
+
         if time_in_hours >= 4:
             total_url = self.request.build_absolute_uri(reverse('courses:course_detail', kwargs={'pk': course.pk}))
             task_send_updates.delay(course.pk, total_url)
@@ -219,12 +220,14 @@ def pay_course(request: HttpRequest, course_pk: int) -> Response:
                 'course': course.pk,
                 'id_stripe_session': session_id
             }
+            print(session_id, payment_url)
             serializer = PaymentSerializer(data=data)
             if serializer.is_valid():
+                print(serializer)
                 serializer.save()
                 return Response({"payment_url": payment_url}, status=status.HTTP_200_OK)
 
-    except requests.RequestException:
+    except requests.RequestException as error:
         return Response({"error": "Ошибка доступа к сайту оплаты"}, status=status.HTTP_400_BAD_REQUEST)
 
     except Course.DoesNotExist:

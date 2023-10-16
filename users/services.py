@@ -17,4 +17,3 @@ def deactivate_users() -> None:
     managers = Group.objects.get(name="Managers")
     regular_users = users.exclude(groups=managers).exclude(is_staff=True).exclude(is_superuser=True)
     regular_users.update(is_active=False)
-    print('Неактивные пользователи заблокированы')
