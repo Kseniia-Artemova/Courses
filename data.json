@@ -1,0 +1,116 @@
+[
+  {
+    "model": "Payment",
+    "amount": 13100,
+    "way_pay": "cash",
+    "fk": [
+      {
+        "model_field": "user",
+        "model_name": "User",
+        "app_label": "users",
+        "pk": 3
+      },
+      {
+        "model_field": "course",
+        "model_name": "Course",
+        "app_label": "courses",
+        "pk": 2
+      }
+    ]
+  },
+  {
+    "model": "Payment",
+    "amount": 15100,
+    "way_pay": "card",
+    "fk": [
+      {
+        "model_field": "user",
+        "model_name": "User",
+        "app_label": "users",
+        "pk": 2
+      },
+      {
+        "model_field": "course",
+        "model_name": "Course",
+        "app_label": "courses",
+        "pk": 1
+      }
+    ]
+  },
+  {
+    "model": "Payment",
+    "amount": 1100,
+    "way_pay": "card",
+    "fk": [
+      {
+        "model_field": "user",
+        "model_name": "User",
+        "app_label": "users",
+        "pk": 3
+      },
+      {
+        "model_field": "lesson",
+        "model_name": "Lesson",
+        "app_label": "courses",
+        "pk": 2
+      }
+    ]
+  },
+  {
+    "model": "Payment",
+    "amount": 1500,
+    "way_pay": "cash",
+    "fk": [
+      {
+        "model_field": "user",
+        "model_name": "User",
+        "app_label": "users",
+        "pk": 1
+      },
+      {
+        "model_field": "lesson",
+        "model_name": "Lesson",
+        "app_label": "courses",
+        "pk": 8
+      }
+    ]
+  },
+  {
+    "model": "Payment",
+    "amount": 2000,
+    "way_pay": "card",
+    "fk": [
+      {
+        "model_field": "user",
+        "model_name": "User",
+        "app_label": "users",
+        "pk": 1
+      },
+      {
+        "model_field": "lesson",
+        "model_name": "Lesson",
+        "app_label": "courses",
+        "pk": 9
+      }
+    ]
+  },
+  {
+    "model": "Payment",
+    "amount": 200000,
+    "way_pay": "card",
+    "fk": [
+      {
+        "model_field": "user",
+        "model_name": "User",
+        "app_label": "users",
+        "pk": 4
+      },
+      {
+        "model_field": "course",
+        "model_name": "Course",
+        "app_label": "courses",
+        "pk": 4
+      }
+    ]
+  }
+]

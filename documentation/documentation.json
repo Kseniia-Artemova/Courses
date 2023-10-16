@@ -1,0 +1,873 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "API Documentation",
+    "description": "Test description",
+    "termsOfService": "https://www.google.com/policies/terms/",
+    "contact": {
+      "email": "contact@snippets.local"
+    },
+    "license": {
+      "name": "BSD License"
+    },
+    "version": "v1"
+  },
+  "host": "127.0.0.1:8000",
+  "schemes": [
+    "http"
+  ],
+  "basePath": "/",
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "securityDefinitions": {
+    "Basic": {
+      "type": "basic"
+    }
+  },
+  "security": [
+    {
+      "Basic": []
+    }
+  ],
+  "paths": {
+    "/courses/create/": {
+      "post": {
+        "operationId": "courses_create_create",
+        "description": "Представление для создания объекта курса.\nЗапрещено для менеджеров и неавторизованных пользователей",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Course"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Course"
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "parameters": []
+    },
+    "/courses/delete/{id}/": {
+      "delete": {
+        "operationId": "courses_delete_delete",
+        "description": "Представление для удаления объекта курса.\nЗапрещено для менеджеров и неавторизованных пользователей",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Курс.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/courses/detail/{id}/": {
+      "get": {
+        "operationId": "courses_detail_read",
+        "description": "Представление для просмотра конкретного объекта курса.\nЮзеры могут видеть только свои курсы, менеджеры могут видеть любые.\nЗапрещено для неавторизованных пользователей",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Course"
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Курс.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/courses/lessons/": {
+      "get": {
+        "operationId": "courses_lessons_list",
+        "summary": "Набор представлений для модели урока.",
+        "description": "Удаление и создание запрещено для менеджеров,\nизменение и детальный просмотр разрешены для менеджеров и владельцев,\nпросмотр списка разрешен любым авторизованным пользователям.\nСписок объектов ограничен для обычных юзеров собственными объектами,\nдля менеджеров доступен весь список объектов",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Lesson"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "post": {
+        "operationId": "courses_lessons_create",
+        "summary": "Набор представлений для модели урока.",
+        "description": "Удаление и создание запрещено для менеджеров,\nизменение и детальный просмотр разрешены для менеджеров и владельцев,\nпросмотр списка разрешен любым авторизованным пользователям.\nСписок объектов ограничен для обычных юзеров собственными объектами,\nдля менеджеров доступен весь список объектов",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Lesson"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Lesson"
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "parameters": []
+    },
+    "/courses/lessons/{id}/": {
+      "get": {
+        "operationId": "courses_lessons_read",
+        "summary": "Набор представлений для модели урока.",
+        "description": "Удаление и создание запрещено для менеджеров,\nизменение и детальный просмотр разрешены для менеджеров и владельцев,\nпросмотр списка разрешен любым авторизованным пользователям.\nСписок объектов ограничен для обычных юзеров собственными объектами,\nдля менеджеров доступен весь список объектов",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Lesson"
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "put": {
+        "operationId": "courses_lessons_update",
+        "summary": "Набор представлений для модели урока.",
+        "description": "Удаление и создание запрещено для менеджеров,\nизменение и детальный просмотр разрешены для менеджеров и владельцев,\nпросмотр списка разрешен любым авторизованным пользователям.\nСписок объектов ограничен для обычных юзеров собственными объектами,\nдля менеджеров доступен весь список объектов",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Lesson"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Lesson"
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "patch": {
+        "operationId": "courses_lessons_partial_update",
+        "summary": "Набор представлений для модели урока.",
+        "description": "Удаление и создание запрещено для менеджеров,\nизменение и детальный просмотр разрешены для менеджеров и владельцев,\nпросмотр списка разрешен любым авторизованным пользователям.\nСписок объектов ограничен для обычных юзеров собственными объектами,\nдля менеджеров доступен весь список объектов",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Lesson"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Lesson"
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "delete": {
+        "operationId": "courses_lessons_delete",
+        "summary": "Набор представлений для модели урока.",
+        "description": "Удаление и создание запрещено для менеджеров,\nизменение и детальный просмотр разрешены для менеджеров и владельцев,\nпросмотр списка разрешен любым авторизованным пользователям.\nСписок объектов ограничен для обычных юзеров собственными объектами,\nдля менеджеров доступен весь список объектов",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Урок.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/courses/list/": {
+      "get": {
+        "operationId": "courses_list_list",
+        "description": "Представление для просмотра списка курсов.\nЮзеры могут видеть только свои курсы, менеджеры могут видеть весь список.\nЗапрещено для неавторизованных пользователей",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "A page number within the paginated result set.",
+            "required": false,
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "required": [
+                "count",
+                "results"
+              ],
+              "type": "object",
+              "properties": {
+                "count": {
+                  "type": "integer"
+                },
+                "next": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "previous": {
+                  "type": "string",
+                  "format": "uri",
+                  "x-nullable": true
+                },
+                "results": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/Course"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "parameters": []
+    },
+    "/courses/payment/list/": {
+      "get": {
+        "operationId": "courses_payment_list_list",
+        "summary": "Представление для отображения списка платежей.",
+        "description": "Менеджеры могут видеть весь список, обычные юзеры - только свои платежи",
+        "parameters": [
+          {
+            "name": "ordering",
+            "in": "query",
+            "description": "Which field to use when ordering the results.",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Payment"
+              }
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "parameters": []
+    },
+    "/courses/subscribe/{id}/": {
+      "post": {
+        "operationId": "courses_subscribe_create",
+        "description": "Представление для осуществления подписки на обновления курса или отмены подписки.\nЗапрещено неавторизованным пользователям",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "required": true,
+          "type": "string"
+        }
+      ]
+    },
+    "/courses/update/{id}/": {
+      "put": {
+        "operationId": "courses_update_update",
+        "description": "Представление для редактирования объекта курса.\nЮзеры могут редактировать только свои курсы, менеджеры могут редактировать любые.\nЗапрещено для неавторизованных пользователей",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Course"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Course"
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "patch": {
+        "operationId": "courses_update_update",
+        "description": "Представление для редактирования объекта курса.\nЮзеры могут редактировать только свои курсы, менеджеры могут редактировать любые.\nЗапрещено для неавторизованных пользователей",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/Course"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/Course"
+            }
+          }
+        },
+        "tags": [
+          "courses"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this Курс.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    },
+    "/users/": {
+      "get": {
+        "operationId": "users_list",
+        "summary": "Набор представлений действий с объектами модели юзера.",
+        "description": "Обновление и удаление разрешены только владельцам,\nсоздание разрешено любому пользователю,\nостальное доступно авторизованным пользователям",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/User"
+              }
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "post": {
+        "operationId": "users_create",
+        "summary": "Набор представлений действий с объектами модели юзера.",
+        "description": "Обновление и удаление разрешены только владельцам,\nсоздание разрешено любому пользователю,\nостальное доступно авторизованным пользователям",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "parameters": []
+    },
+    "/users/api/token/": {
+      "post": {
+        "operationId": "users_api_token_create",
+        "description": "Takes a set of user credentials and returns an access and refresh JSON web\ntoken pair to prove the authentication of those credentials.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TokenObtainPair"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TokenObtainPair"
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "parameters": []
+    },
+    "/users/api/token/refresh/": {
+      "post": {
+        "operationId": "users_api_token_refresh_create",
+        "description": "Takes a refresh type JSON web token and returns an access type JSON web\ntoken if the refresh token is valid.",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TokenRefresh"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/TokenRefresh"
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "parameters": []
+    },
+    "/users/{id}/": {
+      "get": {
+        "operationId": "users_read",
+        "summary": "Набор представлений действий с объектами модели юзера.",
+        "description": "Обновление и удаление разрешены только владельцам,\nсоздание разрешено любому пользователю,\nостальное доступно авторизованным пользователям",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "put": {
+        "operationId": "users_update",
+        "summary": "Набор представлений действий с объектами модели юзера.",
+        "description": "Обновление и удаление разрешены только владельцам,\nсоздание разрешено любому пользователю,\nостальное доступно авторизованным пользователям",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "patch": {
+        "operationId": "users_partial_update",
+        "summary": "Набор представлений действий с объектами модели юзера.",
+        "description": "Обновление и удаление разрешены только владельцам,\nсоздание разрешено любому пользователю,\nостальное доступно авторизованным пользователям",
+        "parameters": [
+          {
+            "name": "data",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "schema": {
+              "$ref": "#/definitions/User"
+            }
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "operationId": "users_delete",
+        "summary": "Набор представлений действий с объектами модели юзера.",
+        "description": "Обновление и удаление разрешены только владельцам,\nсоздание разрешено любому пользователю,\nостальное доступно авторизованным пользователям",
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "parameters": [
+        {
+          "name": "id",
+          "in": "path",
+          "description": "A unique integer value identifying this пользователь.",
+          "required": true,
+          "type": "integer"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "Lesson": {
+      "required": [
+        "name",
+        "video"
+      ],
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Название",
+          "type": "string",
+          "maxLength": 50,
+          "minLength": 1
+        },
+        "description": {
+          "title": "Описание",
+          "type": "string",
+          "x-nullable": true
+        },
+        "video": {
+          "title": "Video",
+          "type": "string",
+          "format": "uri",
+          "minLength": 1
+        },
+        "user": {
+          "title": "User",
+          "type": "string",
+          "readOnly": true
+        },
+        "course": {
+          "title": "Курс",
+          "type": "integer",
+          "x-nullable": true
+        }
+      }
+    },
+    "Course": {
+      "required": [
+        "name"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "name": {
+          "title": "Название",
+          "type": "string",
+          "maxLength": 200,
+          "minLength": 1
+        },
+        "preview": {
+          "title": "Превью",
+          "type": "string",
+          "readOnly": true,
+          "x-nullable": true,
+          "format": "uri"
+        },
+        "description": {
+          "title": "Описание",
+          "type": "string",
+          "x-nullable": true
+        },
+        "lesson_count": {
+          "title": "Lesson count",
+          "type": "string",
+          "readOnly": true
+        },
+        "lessons": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Lesson"
+          }
+        },
+        "user": {
+          "title": "User",
+          "type": "string",
+          "readOnly": true
+        },
+        "is_updates_active": {
+          "title": "Is updates active",
+          "type": "string",
+          "readOnly": true
+        }
+      }
+    },
+    "Payment": {
+      "required": [
+        "amount",
+        "way_pay",
+        "user"
+      ],
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "ID",
+          "type": "integer",
+          "readOnly": true
+        },
+        "date": {
+          "title": "Дата платежа",
+          "type": "string",
+          "format": "date-time",
+          "readOnly": true
+        },
+        "amount": {
+          "title": "Сумма оплаты",
+          "type": "integer",
+          "maximum": 2147483647,
+          "minimum": 0
+        },
+        "way_pay": {
+          "title": "Способ оплаты",
+          "type": "string",
+          "enum": [
+            "card",
+            "cash"
+          ]
+        },
+        "user": {
+          "title": "Пользователь",
+          "type": "integer"
+        },
+        "course": {
+          "title": "Курс",
+          "type": "integer",
+          "x-nullable": true
+        },
+        "lesson": {
+          "title": "Урок",
+          "type": "integer",
+          "x-nullable": true
+        }
+      }
+    },
+    "User": {
+      "required": [
+        "email"
+      ],
+      "type": "object",
+      "properties": {
+        "email": {
+          "title": "E-mail",
+          "type": "string",
+          "format": "email",
+          "maxLength": 254,
+          "minLength": 1
+        },
+        "phone": {
+          "title": "Телефон",
+          "type": "string",
+          "maxLength": 60,
+          "x-nullable": true
+        },
+        "city": {
+          "title": "Город",
+          "type": "string",
+          "maxLength": 100,
+          "x-nullable": true
+        },
+        "avatar": {
+          "title": "Аватар",
+          "type": "string",
+          "readOnly": true,
+          "x-nullable": true,
+          "format": "uri"
+        },
+        "payments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Payment"
+          }
+        }
+      }
+    },
+    "TokenObtainPair": {
+      "required": [
+        "email",
+        "password"
+      ],
+      "type": "object",
+      "properties": {
+        "email": {
+          "title": "Email",
+          "type": "string",
+          "minLength": 1
+        },
+        "password": {
+          "title": "Password",
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "TokenRefresh": {
+      "required": [
+        "refresh"
+      ],
+      "type": "object",
+      "properties": {
+        "refresh": {
+          "title": "Refresh",
+          "type": "string",
+          "minLength": 1
+        },
+        "access": {
+          "title": "Access",
+          "type": "string",
+          "readOnly": true,
+          "minLength": 1
+        }
+      }
+    }
+  }
+}
