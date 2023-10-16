@@ -60,7 +60,8 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Payment
-        exclude = ('id_stripe_session', )
+        fields = '__all__'
+        write_only_fields = ('id_stripe_session', )
 
 
 class SubscriptionSerializer(serializers.ModelSerializer):

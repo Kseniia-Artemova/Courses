@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'drf_yasg',
     'django_celery_beat',
+    'django_celery_results',
 
     'users',
     'courses',
@@ -190,9 +191,11 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = 30 * 60
 
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+
 CELERY_BEAT_SCHEDULE = {
     'deactivate_users': {
-        'task': 'courses.tasks.deactivate_users',
+        'task': 'users.tasks.task_deactivate_users',
         'schedule': timedelta(days=1)
     }
 }
