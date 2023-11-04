@@ -12,11 +12,11 @@ services:
     environment:
       - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
-      - '5433:5432'
+      - '5432:5432'
     volumes:
       - pg_data:/var/lib/postgresql/data/pgdata
     healthcheck:
-      test: [ 'CMD-SHELL', 'pg_isready' ]
+      test: [ 'CMD-SHELL', 'pg_isready -U postgres' ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,9 +34,11 @@ services:
       python manage.py create_superuser &&
       python manage.py runserver 0.0.0.0:8000"
     env_file:
-      - .env
-    environment:
-      - POSTGRES_HOST=postgres_db
+      - .env.docker
+#    env_file:
+#      - .env
+#    environment:
+#      - POSTGRES_HOST=postgres_db
 
   celery:
     build: .
@@ -45,9 +47,8 @@ services:
     depends_on:
       - redis
       - courses
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - .env.docker
 
   celery-beat:
     build: .
@@ -56,9 +57,8 @@ services:
     depends_on:
       - redis
       - courses
-    environment:
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    env_file:
+      - .env.docker
 
 volumes:
   pg_data:
