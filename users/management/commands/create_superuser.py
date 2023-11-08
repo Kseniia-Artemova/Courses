@@ -19,3 +19,6 @@ class Command(BaseCommand):
             )
             superuser.set_password(os.getenv('ADMIN_PASSWORD'))
             superuser.save()
+            print('Суперюзер создан.')
+        else:
+            print('Суперюзер существует.')
