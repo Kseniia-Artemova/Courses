@@ -8,7 +8,7 @@ services:
   postgres_db:
     image: postgres:16.0
     env_file:
-      - .env
+      - .env.docker
     environment:
       - PGDATA=/var/lib/postgresql/data/pgdata
     ports:
